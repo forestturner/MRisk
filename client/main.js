@@ -3,6 +3,8 @@ import { Template } from 'meteor/templating';
 import { Session } from 'meteor/session';
 
 import { Players } from '../players.js';
+import { Territories } from '../territories.js';
+
 // import { Pellets } from '../pellets.js';
 
 import './main.html';
@@ -18,7 +20,7 @@ var updateGameBoard = function (gamecanvas) {
 
 	let players = Players.find().fetch();
 
-
+  console.log(players.find().fetch().length);
 
 	players.forEach( (p) => {
 	    ctx.fillStyle = p.color;
@@ -43,7 +45,21 @@ Template.game.onRendered( function () {
       img.onload = function(){
         ctx.drawImage(img,0,0);
       };
-      img.src = 'http://res.cloudinary.com/dnuopy1ir/image/upload/v1485060141/Risk_xt6gc0.jpg';
+    img.src = 'http://res.cloudinary.com/dnuopy1ir/image/upload/c_scale,h_531,w_800/v1485060141/Risk_xt6gc0.jpg';
+
+	let territories = Territories.find().fetch();
+console.log("hi1");
+  console.log(territories);
+    territories.forEach( (t) => {
+      console.log("hi2");
+      ctx.fillStyle = t.color;
+      ctx.beginPath();
+      ctx.moveTo(t.x,t.y);
+      ctx.arc( t.x, t.y, 20, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+
 
     updateGameBoard(gamecanvas);
 });
@@ -69,6 +85,8 @@ var updateGameBoard = function (gamecanvas) {
     }));
 
     let players = Players.find().fetch();
+  console.log(players);
+
 
     if (players.length <= 2){
       console.log("waiting for more players!")
@@ -105,51 +123,52 @@ Template.game.onCreated( () => {
 
 const STEP_SIZE = 22;
 
-let nearbyPelletQuery = function (newp) {
-    return { $and: [ { x : {$gte: newp.x - 10}},
-		     { x : {$lte: newp.x + 10}},
-		     { y : {$gte: newp.y - 10}},
-		     { y : {$lte: newp.y + 10}}]};
-};
+// let nearbyPelletQuery = function (newp) {
+//     return { $and: [ { x : {$gte: newp.x - 10}},
+// 		     { x : {$lte: newp.x + 10}},
+// 		     { y : {$gte: newp.y - 10}},
+// 		     { y : {$lte: newp.y + 10}}]};
+// };
 
-let newPosition = function ( event, player) {
-    let dx = event.offsetX - player.x;
-    let dy = event.offsetY - player.y;
-    let dist = Math.sqrt( dx*dx + dy*dy);
-    let newx =  player.x + dx * (STEP_SIZE / dist);
-    let newy =  player.y + dy * (STEP_SIZE / dist);
-    return {x:newxy, y:newy};
-};
+// let newPosition = function ( event, player) {
+//     let dx = event.offsetX - player.x;
+//     let dy = event.offsetY - player.y;
+//     let dist = Math.sqrt( dx*dx + dy*dy);
+//     let newx =  player.x + dx * (STEP_SIZE / dist);
+//     let newy =  player.y + dy * (STEP_SIZE / dist);
+//     return {x:newxy, y:newy};
+// };
 
 Template.game.events({
     'click' (event) {
-	let player = Players.findOne(Session.get('playerid'));
+	// let player = Players.findOne(Session.get('playerid'));
 
-	let newPos = newPosition(event, player);
-
-	let gotPellet = Pellets.findOne( nearbyPelletQuery( newPos ) );
-
-	if (gotPellet) {
-	    Pellets.remove(gotPellet._id);
-	    Players.update( player._id,
-			    {$set: {x : newPos.x,
-				    y : newPos.y,
-				    points: player.points + 1,
-				    lastActive: new Date()}});
-
-	} else {
-	    Players.update( player._id,
-			    {$set: {x : newPos.x,
-				    y : newPos.y,
-				    lastActive: new Date()}});
-	}
-    }
+	// let newPos = newPosition(event, player);
+}
 });
-
-Template.points.helpers({
-    getPoints () { return Players.findOne(Session.get('playerid')).points;},
-});
-
-Template.otherPoints.helpers({
-    players () { return Players.find({_id: {$not: Session.get('playerid')}})}
-});
+// 	let gotPellet = Pellets.findOne( nearbyPelletQuery( newPos ) );
+//
+// 	if (gotPellet) {
+// 	    Pellets.remove(gotPellet._id);
+// 	    Players.update( player._id,
+// 			    {$set: {x : newPos.x,
+// 				    y : newPos.y,
+// 				    points: player.points + 1,
+// 				    lastActive: new Date()}});
+//
+// 	} else {
+// 	    Players.update( player._id,
+// 			    {$set: {x : newPos.x,
+// 				    y : newPos.y,
+// 				    lastActive: new Date()}});
+// 	}
+//     }
+// });
+//
+// Template.points.helpers({
+//     getPoints () { return Players.findOne(Session.get('playerid')).points;},
+// });
+//
+// Template.otherPoints.helpers({
+//     players () { return Players.find({_id: {$not: Session.get('playerid')}})}
+// });
